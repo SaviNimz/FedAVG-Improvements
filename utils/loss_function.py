@@ -27,11 +27,14 @@ def distillation_loss(teacher_output, student_output, T):
         torch.Tensor: Computed knowledge distillation loss.
     """
     # Softmax over temperature-scaled logits
-    teacher_out = F.softmax(teacher_output / T, dim=1)
-    student_out = F.softmax(student_output / T, dim=1)
-    
+    teacher_prob = F.softmax(teacher_output / T, dim=1)
+
     # KL divergence between teacher and student outputs
-    loss = F.kl_div(F.log_softmax(student_output / T, dim=1), teacher_out, reduction='batchmean') * (T ** 2)
+    loss = F.kl_div(
+        F.log_softmax(student_output / T, dim=1),
+        teacher_prob,
+        reduction='batchmean',
+    ) * (T ** 2)
     return loss
 
 def total_loss(student_out, labels, teacher_output, T, lambda_):
