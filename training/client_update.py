@@ -10,19 +10,16 @@ def client_update(student, teacher, local_data, lambda_, T, tau):
     optimizer = optim.SGD(student.parameters(), lr=0.01)
     
     for inputs, labels in local_data:
-        # Teacher predictions (frozen model)
+        # Teacher and student predictions (raw logits)
         teacher_out = teacher(inputs)
-        teacher_out = teacher_out / T  # Apply temperature scaling
-        
-        # Student predictions
         student_out = student(inputs)
-        student_out = student_out / T
-        
-        # Calculate cross-entropy and knowledge distillation loss
+
+        # Calculate cross-entropy on raw student logits
         ce_loss = cross_entropy_loss(student_out, labels)
         kd_loss = distillation_loss(teacher_out, student_out, T)
-        
-        if max(teacher_out) >= tau:
+
+        # Apply distillation only when teacher is confident
+        if torch.max(torch.softmax(teacher_out / T, dim=1)) >= tau:
             loss = ce_loss + lambda_ * kd_loss
         else:
             loss = ce_loss
