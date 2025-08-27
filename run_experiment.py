@@ -1,3 +1,4 @@
+import argparse
 import torch
 import torch.optim as optim
 import yaml
@@ -5,9 +6,26 @@ from training.client_update import client_update
 from training.server_aggregation import server_aggregation
 from utils.data_loader import load_data
 from utils.evaluation import evaluate_model
+from models.architectures import CIFARCNN, FEMNISTCNN, ShakespeareLSTM
 from models.student_model import StudentModel
 from models.teacher_model import TeacherModel
 from utils.loss_function import total_loss
+
+
+def create_model(config):
+    """Return an architecture appropriate for the selected dataset."""
+    dataset = config['dataset_name'].lower()
+    model_name = config.get('model_name', '').lower()
+
+    if dataset == 'cifar-10' or model_name == 'cifar_cnn':
+        return CIFARCNN()
+    if dataset in ('femnist', 'emnist') or model_name in ('femnist_cnn', 'emnist_cnn'):
+        num_classes = config.get('num_classes', 62)
+        return FEMNISTCNN(num_classes=num_classes)
+    if dataset == 'shakespeare' or model_name in ('shakespeare', 'shakespeare_lstm'):
+        vocab_size = config.get('vocab_size', 80)
+        return ShakespeareLSTM(vocab_size=vocab_size)
+    raise ValueError(f"Unsupported dataset/model combination: {dataset}, {model_name}")
 
 def load_config(config_file):
     """
@@ -33,8 +51,8 @@ def run_experiment(config):
     # Load datasets
     train_loader, test_loader = load_data(config['dataset_name'], config['batch_size'])
 
-    # Initialize global model (use any base architecture for experimentation)
-    global_model = StudentModel(global_model=None)  # Replace with a base model (e.g., CNN)
+    # Initialize global model based on dataset/model selection
+    global_model = create_model(config)
 
     # Hyperparameters
     lambda_ = config['lambda_']
@@ -47,19 +65,13 @@ def run_experiment(config):
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}/{epochs}")
 
-        # Simulate the communication with clients (just a single client here)
-        client_weights = []
-        for i, (inputs, labels) in enumerate(train_loader):
-            # Create teacher-student models
-            teacher = TeacherModel(global_model)
-            student = StudentModel(global_model)
-
-            # Train the student model
-            updated_weights = client_update(global_model, train_loader, lambda_, T, tau)
-            client_weights.append(updated_weights)
+        # Simulate communication with a single client
+        student = StudentModel(global_model)
+        teacher = TeacherModel(global_model)
+        updated_weights = client_update(student, teacher, train_loader, lambda_, T, tau)
 
         # Aggregate the client weights on the server
-        aggregated_weights = server_aggregation(client_weights)
+        aggregated_weights = server_aggregation([updated_weights])
         global_model.load_state_dict(aggregated_weights)  # Update global model with aggregated weights
 
         # Evaluate the model after each epoch
@@ -67,8 +79,16 @@ def run_experiment(config):
         print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
 
 if __name__ == "__main__":
-    # Load configuration file (you can specify the path to your YAML file)
-    config = load_config('config/config.yaml')
+    parser = argparse.ArgumentParser(description="Run Federated Learning experiments")
+    parser.add_argument('--config', default='config/config.yaml', help='Path to config file')
+    parser.add_argument('--dataset', help='Override dataset name from config')
+    parser.add_argument('--model', help='Override model architecture')
+    args = parser.parse_args()
 
-    # Run the experiment
+    config = load_config(args.config)
+    if args.dataset:
+        config['dataset_name'] = args.dataset
+    if args.model:
+        config['model_name'] = args.model
+
     run_experiment(config)

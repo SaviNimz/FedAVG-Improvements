@@ -1,28 +1,12 @@
 import torch
 import torch.optim as optim
-from models.student_model import StudentModel
-from models.teacher_model import TeacherModel
-from utils.loss_functions import distillation_loss, cross_entropy_loss
+from utils.loss_function import distillation_loss, cross_entropy_loss
 
-def client_update(global_model, local_data, lambda_, T, tau):
-    """
-    Performs local training of the student model using knowledge distillation and cross-entropy loss.
-    
-    Parameters:
-        global_model (nn.Module): The global model received from the server (teacher model).
-        local_data (DataLoader): The local data for training the student model.
-        lambda_ (float): Weight of the knowledge distillation loss.
-        T (float): Temperature parameter for knowledge distillation.
-        tau (float): Confidence threshold for skipping distillation loss on unreliable teacher predictions.
-    
-    Returns:
-        torch.Tensor: Updated model weights for the student.
-    """
-    # Clone the global model into a frozen teacher and a trainable student
-    teacher = TeacherModel(global_model).freeze()
-    student = StudentModel(global_model).train()
-    
-    # Optimizer for the student model
+def client_update(student, teacher, local_data, lambda_, T, tau):
+    """Perform local training for a single client."""
+    teacher.freeze()
+    student.train()
+
     optimizer = optim.SGD(student.parameters(), lr=0.01)
     
     for inputs, labels in local_data:
