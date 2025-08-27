@@ -1,6 +1,4 @@
 import argparse
-import torch
-import torch.optim as optim
 from torch.utils.data import DataLoader
 import yaml
 from training.client_update import client_update
@@ -8,8 +6,6 @@ from training.server_aggregation import server_aggregation
 from utils.data_loader import load_data
 from utils.evaluation import evaluate_model
 from models.architectures import CIFARCNN, FEMNISTCNN, ShakespeareLSTM
-from models.student_model import StudentModel
-from models.teacher_model import TeacherModel
 from utils.loss_function import total_loss
 
 
@@ -76,10 +72,9 @@ def run_experiment(config):
         print(f"Epoch {epoch + 1}/{epochs}")
 
         client_weights = []
-        for loader in train_loaders:
-            student = StudentModel(global_model)
-            teacher = TeacherModel(global_model)
-            updated_weights = client_update(student, teacher, loader, lambda_, T, tau)
+        # Iterate over each client-specific DataLoader
+        for client_loader in train_loaders:
+            updated_weights = client_update(global_model, client_loader, lambda_, T, tau)
             client_weights.append(updated_weights)
 
         aggregated_weights = server_aggregation(client_weights)
