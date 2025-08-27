@@ -6,6 +6,7 @@ tau: 0.9
 # Dataset
 dataset_name: CIFAR-10
 batch_size: 64
+model_name: cifar_cnn
 
 # Training parameters
 epochs: 10
