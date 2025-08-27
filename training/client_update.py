@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 from models.student_model import StudentModel
 from models.teacher_model import TeacherModel
-from utils.loss_functions import distillation_loss, cross_entropy_loss
+from utils.loss_function import distillation_loss, cross_entropy_loss
 
 def client_update(global_model, local_data, lambda_, T, tau):
     """
