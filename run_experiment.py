@@ -1,6 +1,7 @@
 import argparse
 import torch
 import torch.optim as optim
+from torch.utils.data import DataLoader
 import yaml
 from training.client_update import client_update
 from training.server_aggregation import server_aggregation
@@ -49,7 +50,12 @@ def run_experiment(config):
         config (dict): Configuration containing hyperparameters and dataset details.
     """
     # Load datasets
-    train_loader, test_loader = load_data(config['dataset_name'], config['batch_size'])
+    train_loaders, test_loader = load_data(
+        config['dataset_name'],
+        config['batch_size'],
+        num_clients=config.get('num_clients', 1),
+        non_iid=config.get('non_iid', False),
+    )
 
     # Initialize global model based on dataset/model selection
     global_model = create_model(config)
@@ -61,20 +67,24 @@ def run_experiment(config):
     epochs = config['epochs']
     learning_rate = config['learning_rate']
 
+    # Ensure train_loaders is iterable
+    if isinstance(train_loaders, DataLoader):
+        train_loaders = [train_loaders]
+
     # Training loop
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}/{epochs}")
 
-        # Simulate communication with a single client
-        student = StudentModel(global_model)
-        teacher = TeacherModel(global_model)
-        updated_weights = client_update(student, teacher, train_loader, lambda_, T, tau)
+        client_weights = []
+        for loader in train_loaders:
+            student = StudentModel(global_model)
+            teacher = TeacherModel(global_model)
+            updated_weights = client_update(student, teacher, loader, lambda_, T, tau)
+            client_weights.append(updated_weights)
 
-        # Aggregate the client weights on the server
-        aggregated_weights = server_aggregation([updated_weights])
-        global_model.load_state_dict(aggregated_weights)  # Update global model with aggregated weights
+        aggregated_weights = server_aggregation(client_weights)
+        global_model.load_state_dict(aggregated_weights)
 
-        # Evaluate the model after each epoch
         accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss)
         print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
 
