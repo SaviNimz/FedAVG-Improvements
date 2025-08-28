@@ -9,6 +9,7 @@ batch_size: 64
 model_name: cifar_cnn
 num_clients: 1
 non_iid: false
+seed: 42
 
 # Training parameters
 epochs: 10

@@ -3,6 +3,8 @@ import urllib.request
 
 import numpy as np
 import torch
+from typing import Optional
+
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import datasets, transforms
 
@@ -25,8 +27,18 @@ def _get_transform(dataset_name: str):
     raise ValueError(f"Unsupported dataset for transforms: {dataset_name}")
 
 
-def _split_dataset(dataset, num_clients: int, non_iid: bool, shards_per_client: int = 2):
+def _split_dataset(
+    dataset,
+    num_clients: int,
+    non_iid: bool,
+    shards_per_client: int = 2,
+    seed: Optional[int] = None,
+):
     """Split a dataset into subsets for each client."""
+    if seed is not None:
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
     if num_clients <= 1:
         return [dataset]
 
@@ -49,8 +61,18 @@ def _split_dataset(dataset, num_clients: int, non_iid: bool, shards_per_client: 
     return [Subset(dataset, idx) for idx in client_indices]
 
 
-def load_data(dataset_name: str, batch_size: int, num_clients: int = 1, non_iid: bool = False):
+def load_data(
+    dataset_name: str,
+    batch_size: int,
+    num_clients: int = 1,
+    non_iid: bool = False,
+    seed: Optional[int] = None,
+):
     """Load dataset and return DataLoaders for clients and test set."""
+    if seed is not None:
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
     transform = _get_transform(dataset_name)
     name = dataset_name.upper()
 
@@ -98,7 +120,7 @@ def load_data(dataset_name: str, batch_size: int, num_clients: int = 1, non_iid:
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
-    subsets = _split_dataset(train_dataset, num_clients, non_iid)
+    subsets = _split_dataset(train_dataset, num_clients, non_iid, seed=seed)
     train_loaders = [
         DataLoader(subset, batch_size=batch_size, shuffle=True) for subset in subsets
     ]
