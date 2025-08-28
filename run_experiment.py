@@ -8,7 +8,7 @@ from training.server_aggregation import server_aggregation
 from utils.data_loader import load_data
 from utils.evaluation import evaluate_model
 from models.architectures import CIFARCNN, FEMNISTCNN, ShakespeareLSTM
-from utils.loss_function import total_loss
+from utils.loss_function import cross_entropy_loss
 
 
 def create_model(config):
@@ -88,7 +88,7 @@ def run_experiment(config):
                 client_sizes.append(len(client_loader.dataset))
 
             aggregated_weights = server_aggregation(client_weights, client_sizes)
-            
+
             # Create a new dictionary with the corrected keys
             fixed_aggregated_weights = {
                 key.replace('model.', ''): value 
@@ -96,7 +96,7 @@ def run_experiment(config):
             }
             global_model.load_state_dict(fixed_aggregated_weights)
 
-            accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss)
+            accuracy, avg_loss = evaluate_model(global_model, test_loader, cross_entropy_loss)
             print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
             mlflow.log_metric("accuracy", accuracy, step=epoch)
             mlflow.log_metric("loss", avg_loss, step=epoch)
