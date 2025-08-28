@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 import yaml
 import mlflow
 import mlflow.pytorch
+import torch
 from training.client_update import client_update
 from training.server_aggregation import server_aggregation
 from utils.data_loader import load_data
@@ -50,6 +51,9 @@ def run_experiment(config):
     with mlflow.start_run():
         mlflow.log_params(config)
 
+        # Device configuration
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         # Load datasets
         train_loaders, test_loader = load_data(
             config['dataset_name'],
@@ -60,7 +64,7 @@ def run_experiment(config):
         )
 
         # Initialize global model based on dataset/model selection
-        global_model = create_model(config)
+        global_model = create_model(config).to(device)
 
         # Hyperparameters
         lambda_ = config['lambda_']
@@ -82,7 +86,7 @@ def run_experiment(config):
             # Iterate over each client-specific DataLoader
             for client_loader in train_loaders:
                 updated_weights = client_update(
-                    global_model, client_loader, lambda_, T, tau, learning_rate
+                    global_model, client_loader, lambda_, T, tau, learning_rate, device
                 )
                 client_weights.append(updated_weights)
                 client_sizes.append(len(client_loader.dataset))
@@ -96,7 +100,7 @@ def run_experiment(config):
             }
             global_model.load_state_dict(fixed_aggregated_weights)
 
-            accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss)
+            accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss, device)
             print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
             mlflow.log_metric("accuracy", accuracy, step=epoch)
             mlflow.log_metric("loss", avg_loss, step=epoch)
