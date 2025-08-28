@@ -72,14 +72,16 @@ def run_experiment(config):
         print(f"Epoch {epoch + 1}/{epochs}")
 
         client_weights = []
+        client_sizes = []
         # Iterate over each client-specific DataLoader
         for client_loader in train_loaders:
             updated_weights = client_update(
                 global_model, client_loader, lambda_, T, tau, learning_rate
             )
             client_weights.append(updated_weights)
+            client_sizes.append(len(client_loader.dataset))
 
-        aggregated_weights = server_aggregation(client_weights)
+        aggregated_weights = server_aggregation(client_weights, client_sizes)
         global_model.load_state_dict(aggregated_weights)
 
         accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss)
