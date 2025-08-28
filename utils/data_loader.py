@@ -1,6 +1,9 @@
-import torch
+import os
+import urllib.request
+
 import numpy as np
-from torch.utils.data import DataLoader, Subset
+import torch
+from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import datasets, transforms
 
 
@@ -17,6 +20,8 @@ def _get_transform(dataset_name: str):
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,)),
         ])
+    if name == 'shakespeare':
+        return None
     raise ValueError(f"Unsupported dataset for transforms: {dataset_name}")
 
 
@@ -46,7 +51,6 @@ def _split_dataset(dataset, num_clients: int, non_iid: bool, shards_per_client: 
 
 def load_data(dataset_name: str, batch_size: int, num_clients: int = 1, non_iid: bool = False):
     """Load dataset and return DataLoaders for clients and test set."""
-
     transform = _get_transform(dataset_name)
     name = dataset_name.upper()
 
@@ -56,6 +60,41 @@ def load_data(dataset_name: str, batch_size: int, num_clients: int = 1, non_iid:
     elif name in ('EMNIST', 'FEMNIST'):
         train_dataset = datasets.EMNIST(root='./data', split='byclass', train=True, download=True, transform=transform)
         test_dataset = datasets.EMNIST(root='./data', split='byclass', train=False, download=True, transform=transform)
+    elif name == 'SHAKESPEARE':
+        url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
+        data_dir = './data'
+        os.makedirs(data_dir, exist_ok=True)
+        file_path = os.path.join(data_dir, 'shakespeare.txt')
+        if not os.path.exists(file_path):
+            urllib.request.urlretrieve(url, file_path)
+        with open(file_path, 'r', encoding='utf-8') as f:
+            text = f.read()
+
+        chars = sorted(list(set(text)))
+        stoi = {ch: i for i, ch in enumerate(chars)}
+        encoded = torch.tensor([stoi[ch] for ch in text], dtype=torch.long)
+
+        split_idx = int(0.9 * len(encoded))
+        train_data = encoded[:split_idx]
+        test_data = encoded[split_idx:]
+        seq_len = 80
+
+        class ShakespeareDataset(Dataset):
+            def __init__(self, data, seq_len):
+                self.data = data
+                self.seq_len = seq_len
+                self.targets = data[seq_len:]
+
+            def __len__(self):
+                return len(self.data) - self.seq_len
+
+            def __getitem__(self, idx):
+                x = self.data[idx:idx + self.seq_len]
+                y = self.data[idx + 1: idx + self.seq_len + 1]
+                return x, y
+
+        train_dataset = ShakespeareDataset(train_data, seq_len)
+        test_dataset = ShakespeareDataset(test_data, seq_len)
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
