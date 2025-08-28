@@ -1,4 +1,5 @@
 import torch.optim as optim
+import torch
 from utils.loss_function import distillation_loss, cross_entropy_loss
 from models.student_model import StudentModel
 from models.teacher_model import TeacherModel
