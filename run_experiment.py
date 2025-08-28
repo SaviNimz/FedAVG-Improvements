@@ -102,7 +102,7 @@ def run_experiment(config):
             }
             global_model.load_state_dict(fixed_aggregated_weights)
 
-            accuracy, avg_loss = evaluate_model(global_model, test_loader, cross_entropy_loss)
+            accuracy, avg_loss = evaluate_model(global_model, test_loader, cross_entropy_loss, device)
             print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
             mlflow.log_metric("accuracy", accuracy, step=epoch)
             mlflow.log_metric("loss", avg_loss, step=epoch)
