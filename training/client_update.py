@@ -21,7 +21,7 @@ def client_update(global_model, local_data, lambda_, T, tau, learning_rate):
     student.train()
 
     optimizer = optim.SGD(student.parameters(), lr=learning_rate)
-    
+
     for inputs, labels in local_data:
         # Teacher and student predictions (raw logits)
         teacher_out = teacher(inputs)
@@ -29,10 +29,15 @@ def client_update(global_model, local_data, lambda_, T, tau, learning_rate):
 
         # Calculate cross-entropy on raw student logits
         ce_loss = cross_entropy_loss(student_out, labels)
+
+        # Compute teacher probabilities and confidence
+        teacher_probs = torch.softmax(teacher_out / T, dim=1)
+        conf, _ = teacher_probs.max(dim=1)
+
         kd_loss = distillation_loss(teacher_out, student_out, T)
 
-        # Apply distillation only when teacher is confident
-        if torch.max(torch.softmax(teacher_out / T, dim=1)) >= tau:
+        # Apply distillation only when average confidence exceeds the threshold
+        if conf.mean() >= tau:
             loss = ce_loss + lambda_ * kd_loss
         else:
             loss = ce_loss
