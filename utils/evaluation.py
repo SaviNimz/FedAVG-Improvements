@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-def evaluate_model(model, test_loader, criterion):
+
+def evaluate_model(model, test_loader, criterion, device):
     """
     Evaluates the model on the test dataset and returns the accuracy and loss.
     
@@ -15,6 +16,7 @@ def evaluate_model(model, test_loader, criterion):
         float: Accuracy of the model on the test dataset.
         float: Loss of the model on the test dataset.
     """
+    model.to(device)
     model.eval()  # Set the model to evaluation mode
     correct = 0
     total = 0
@@ -22,6 +24,7 @@ def evaluate_model(model, test_loader, criterion):
     
     with torch.no_grad():
         for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
             # Forward pass
             outputs = model(inputs)
             loss = criterion(outputs, labels)
