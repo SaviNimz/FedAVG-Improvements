@@ -51,6 +51,7 @@ def run_experiment(config):
         config['batch_size'],
         num_clients=config.get('num_clients', 1),
         non_iid=config.get('non_iid', False),
+        seed=config.get('seed'),
     )
 
     # Initialize global model based on dataset/model selection
