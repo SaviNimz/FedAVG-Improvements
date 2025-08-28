@@ -23,3 +23,11 @@ This project enhances the Federated Averaging (FedAvg) algorithm with a knowledg
     -   Install the required Python packages by running:
         ```bash
         pip install -r requirements.txt
+        ```
+
+4. **View MLflow Results**
+    - After running an experiment, launch the MLflow UI:
+        ```bash
+        mlflow ui --backend-store-uri mlruns
+        ```
+    - Open `http://localhost:5000` in your browser to explore runs, metrics, and model artifacts.
