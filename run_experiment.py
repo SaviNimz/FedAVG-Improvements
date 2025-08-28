@@ -54,6 +54,8 @@ def run_experiment(config):
         # Device configuration
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+        print("device:", device)
+
         # Load datasets
         train_loaders, test_loader = load_data(
             config['dataset_name'],
@@ -100,7 +102,7 @@ def run_experiment(config):
             }
             global_model.load_state_dict(fixed_aggregated_weights)
 
-            accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss)
+            accuracy, avg_loss = evaluate_model(global_model, test_loader, cross_entropy_loss)
             print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
             mlflow.log_metric("accuracy", accuracy, step=epoch)
             mlflow.log_metric("loss", avg_loss, step=epoch)
