@@ -1,2 +1,5 @@
 /.anima
 /env
+/data
+/mlruns
+__pycache__/
