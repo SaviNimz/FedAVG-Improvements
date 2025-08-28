@@ -88,7 +88,13 @@ def run_experiment(config):
                 client_sizes.append(len(client_loader.dataset))
 
             aggregated_weights = server_aggregation(client_weights, client_sizes)
-            global_model.load_state_dict(aggregated_weights)
+            
+            # Create a new dictionary with the corrected keys
+            fixed_aggregated_weights = {
+                key.replace('model.', ''): value 
+                for key, value in aggregated_weights.items()
+            }
+            global_model.load_state_dict(fixed_aggregated_weights)
 
             accuracy, avg_loss = evaluate_model(global_model, test_loader, total_loss)
             print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
