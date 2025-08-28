@@ -74,7 +74,9 @@ def run_experiment(config):
         client_weights = []
         # Iterate over each client-specific DataLoader
         for client_loader in train_loaders:
-            updated_weights = client_update(global_model, client_loader, lambda_, T, tau)
+            updated_weights = client_update(
+                global_model, client_loader, lambda_, T, tau, learning_rate
+            )
             client_weights.append(updated_weights)
 
         aggregated_weights = server_aggregation(client_weights)
