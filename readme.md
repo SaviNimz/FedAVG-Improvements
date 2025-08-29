@@ -44,7 +44,8 @@ You can change the value in `config/config.yaml` or override it on the command l
 ```bash
 # Baseline FedAvg
 python run_experiment.py --algorithm fedavg
-
+```
+```bash
 # Improved FedAvg with knowledge distillation
 python run_experiment.py --algorithm fedavg_kd
 ```
