@@ -19,5 +19,5 @@ seed: 42
 # Training parameters
 epochs: 10
 learning_rate: 0.01
-local_epochs: 1          # number of local training passes per client
-client_fraction: 1.0     # fraction C of clients sampled each round
+local_epochs: 20          # number of local training passes per client
+client_fraction: 0.1     # fraction C of clients sampled each round
