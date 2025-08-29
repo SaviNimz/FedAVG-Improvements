@@ -5,11 +5,16 @@ import sys
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, Subset
+import yaml
 
 # Ensure the project root is on the Python path when running tests
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+CONFIG_PATH = os.path.join(PROJECT_ROOT, "config", "config.yaml")
+with open(CONFIG_PATH, "r") as f:
+    CONFIG = yaml.safe_load(f)
 
 from models.architectures import CIFARCNN
 from training.client_update import client_update
@@ -30,7 +35,7 @@ def seed_everything(seed: int) -> None:
     torch.backends.cudnn.benchmark = False
 
 
-def prepare_data(seed: int, batch_size: int = 64,
+def prepare_data(seed: int, batch_size: int,
                  num_clients: int = 2,
                  subset_train: int = 100,
                  subset_test: int = 200):
@@ -94,11 +99,12 @@ def test_kd_improves_over_baseline():
     seed_everything(seed)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    train_loaders, test_loader = prepare_data(seed)
+    batch_size = CONFIG["batch_size"]
+    train_loaders, test_loader = prepare_data(seed, batch_size=batch_size)
     baseline_acc = run_fedavg(train_loaders, test_loader, epochs=2, lr=0.01, device=device)
 
     # Re-create loaders so that shuffling order matches baseline run
-    train_loaders, test_loader = prepare_data(seed)
+    train_loaders, test_loader = prepare_data(seed, batch_size=batch_size)
     kd_acc = run_fedavg_kd(
         train_loaders, test_loader, epochs=2, lr=0.01,
         lambda_=0.5, T=2.0, tau=0.9, device=device
