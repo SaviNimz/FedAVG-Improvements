@@ -31,3 +31,24 @@ This project enhances the Federated Averaging (FedAvg) algorithm with a knowledg
         mlflow ui --backend-store-uri mlruns
         ```
     - Open `http://localhost:5000` in your browser to explore runs, metrics, and model artifacts.
+
+## Running Experiments
+
+The `algorithm` configuration flag selects between the baseline and the improved approach:
+
+* `fedavg` – standard Federated Averaging.
+* `fedavg_kd` – FedAvg with a knowledge distillation regularizer.
+
+You can change the value in `config/config.yaml` or override it on the command line:
+
+```bash
+# Baseline FedAvg
+python run_experiment.py --algorithm fedavg
+
+# Improved FedAvg with knowledge distillation
+python run_experiment.py --algorithm fedavg_kd
+```
+
+## Expected Behavior on Non-IID Data
+
+Non-IID client data often causes the baseline FedAvg to drift, reducing global model accuracy. The knowledge distillation variant is designed to counter this drift by aligning client models, typically leading to higher accuracy on non-IID splits. Metrics and model artifacts for both variants are logged to the `mlruns/` directory and can be compared in the MLflow UI.
