@@ -5,6 +5,7 @@ import mlflow
 import mlflow.pytorch
 import torch
 from training.client_update import client_update
+from training.client_update_baseline import client_update_baseline
 from training.server_aggregation import server_aggregation
 from utils.data_loader import load_data
 from utils.evaluation import evaluate_model
@@ -68,10 +69,13 @@ def run_experiment(config):
         # Initialize global model based on dataset/model selection
         global_model = create_model(config).to(device)
 
+        # Algorithm selection
+        algorithm = config.get('algorithm', 'fedavg_kd').lower()
+
         # Hyperparameters
-        lambda_ = config['lambda_']
-        T = config['T']
-        tau = config['tau']
+        lambda_ = config.get('lambda_', 0.5)
+        T = config.get('T', 2.0)
+        tau = config.get('tau', 0.9)
         epochs = config['epochs']
         learning_rate = config['learning_rate']
 
@@ -87,9 +91,14 @@ def run_experiment(config):
             client_sizes = []
             # Iterate over each client-specific DataLoader
             for client_loader in train_loaders:
-                updated_weights = client_update(
-                    global_model, client_loader, lambda_, T, tau, learning_rate, device
-                )
+                if algorithm == 'fedavg':
+                    updated_weights = client_update_baseline(
+                        global_model, client_loader, learning_rate, device
+                    )
+                else:
+                    updated_weights = client_update(
+                        global_model, client_loader, lambda_, T, tau, learning_rate, device
+                    )
                 client_weights.append(updated_weights)
                 client_sizes.append(len(client_loader.dataset))
 
@@ -114,6 +123,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', default='config/config.yaml', help='Path to config file')
     parser.add_argument('--dataset', help='Override dataset name from config')
     parser.add_argument('--model', help='Override model architecture')
+    parser.add_argument('--algorithm', choices=['fedavg', 'fedavg_kd'], help='Override algorithm from config')
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -121,5 +131,7 @@ if __name__ == "__main__":
         config['dataset_name'] = args.dataset
     if args.model:
         config['model_name'] = args.model
+    if args.algorithm:
+        config['algorithm'] = args.algorithm
 
     run_experiment(config)
