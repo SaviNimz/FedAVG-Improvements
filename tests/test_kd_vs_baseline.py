@@ -60,12 +60,12 @@ def prepare_data(seed: int, batch_size: int,
     return new_train_loaders, test_loader
 
 
-def run_fedavg(train_loaders, test_loader, epochs: int, lr: float, device):
+def run_fedavg(train_loaders, test_loader, epochs: int, lr: float, device, local_epochs: int):
     model = CIFARCNN().to(device)
     for _ in range(epochs):
         client_weights, client_sizes = [], []
         for loader in train_loaders:
-            weights = client_update_baseline(model, loader, lr, device)
+            weights = client_update_baseline(model, loader, lr, device, local_epochs)
             client_weights.append(weights)
             client_sizes.append(len(loader.dataset))
         aggregated = server_aggregation(client_weights, client_sizes)
@@ -77,13 +77,13 @@ def run_fedavg(train_loaders, test_loader, epochs: int, lr: float, device):
 
 def run_fedavg_kd(train_loaders, test_loader, epochs: int,
                   lr: float, lambda_: float, T: float,
-                  tau: float, device):
+                  tau: float, device, local_epochs: int):
     model = CIFARCNN().to(device)
     for _ in range(epochs):
         client_weights, client_sizes = [], []
         for loader in train_loaders:
             weights = client_update(
-                model, loader, lambda_, T, tau, lr, device
+                model, loader, lambda_, T, tau, lr, device, local_epochs
             )
             client_weights.append(weights)
             client_sizes.append(len(loader.dataset))
@@ -101,13 +101,22 @@ def test_kd_improves_over_baseline():
 
     batch_size = CONFIG["batch_size"]
     train_loaders, test_loader = prepare_data(seed, batch_size=batch_size)
-    baseline_acc = run_fedavg(train_loaders, test_loader, epochs=2, lr=0.01, device=device)
+    baseline_acc = run_fedavg(
+        train_loaders, test_loader, epochs=2, lr=0.01, device=device, local_epochs=1
+    )
 
     # Re-create loaders so that shuffling order matches baseline run
     train_loaders, test_loader = prepare_data(seed, batch_size=batch_size)
     kd_acc = run_fedavg_kd(
-        train_loaders, test_loader, epochs=2, lr=0.01,
-        lambda_=0.5, T=2.0, tau=0.9, device=device
+        train_loaders,
+        test_loader,
+        epochs=2,
+        lr=0.01,
+        lambda_=0.5,
+        T=2.0,
+        tau=0.9,
+        device=device,
+        local_epochs=1,
     )
 
     print(f"Baseline accuracy: {baseline_acc:.2f}%")

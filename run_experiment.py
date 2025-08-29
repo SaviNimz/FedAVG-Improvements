@@ -78,6 +78,7 @@ def run_experiment(config):
         tau = config.get('tau', 0.9)
         epochs = config['epochs']
         learning_rate = config['learning_rate']
+        local_epochs = config.get('local_epochs', 1)
 
         # Ensure train_loaders is iterable
         if isinstance(train_loaders, DataLoader):
@@ -93,11 +94,18 @@ def run_experiment(config):
             for client_loader in train_loaders:
                 if algorithm == 'fedavg':
                     updated_weights = client_update_baseline(
-                        global_model, client_loader, learning_rate, device
+                        global_model, client_loader, learning_rate, device, local_epochs
                     )
                 else:
                     updated_weights = client_update(
-                        global_model, client_loader, lambda_, T, tau, learning_rate, device
+                        global_model,
+                        client_loader,
+                        lambda_,
+                        T,
+                        tau,
+                        learning_rate,
+                        device,
+                        local_epochs,
                     )
                 client_weights.append(updated_weights)
                 client_sizes.append(len(client_loader.dataset))
