@@ -3,7 +3,7 @@ import torch.optim as optim
 from utils.loss_function import cross_entropy_loss
 
 
-def client_update_baseline(global_model, local_data, learning_rate, device):
+def client_update_baseline(global_model, local_data, learning_rate, device, local_epochs):
     """Perform local training for a single client using only cross-entropy loss.
 
     Parameters:
@@ -11,6 +11,7 @@ def client_update_baseline(global_model, local_data, learning_rate, device):
         local_data: DataLoader containing the client's local data.
         learning_rate (float): Learning rate for the optimizer.
         device: Device on which to perform training.
+        local_epochs (int): Number of local epochs to train the model.
 
     Returns:
         dict: Updated state dictionary of the locally trained model.
@@ -21,13 +22,14 @@ def client_update_baseline(global_model, local_data, learning_rate, device):
 
     optimizer = optim.SGD(local_model.parameters(), lr=learning_rate)
 
-    for inputs, labels in local_data:
-        inputs, labels = inputs.to(device), labels.to(device)
-        outputs = local_model(inputs)
-        loss = cross_entropy_loss(outputs, labels)
+    for _ in range(local_epochs):
+        for inputs, labels in local_data:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = local_model(inputs)
+            loss = cross_entropy_loss(outputs, labels)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
     return local_model.state_dict()
