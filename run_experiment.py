@@ -1,4 +1,5 @@
 import argparse
+import random
 from torch.utils.data import DataLoader
 import yaml
 import mlflow
@@ -79,19 +80,28 @@ def run_experiment(config):
         epochs = config['epochs']
         learning_rate = config['learning_rate']
         local_epochs = config.get('local_epochs', 1)
+        client_fraction = config.get('client_fraction', 1.0)
+        seed = config.get('seed')
 
         # Ensure train_loaders is iterable
         if isinstance(train_loaders, DataLoader):
             train_loaders = [train_loaders]
 
         # Training loop
+        num_clients = len(train_loaders)
         for epoch in range(epochs):
             print(f"Epoch {epoch + 1}/{epochs}")
 
+            if seed is not None:
+                random.seed(seed + epoch)
+            num_selected = max(1, int(client_fraction * num_clients))
+            selected_indices = random.sample(range(num_clients), num_selected)
+
             client_weights = []
             client_sizes = []
-            # Iterate over each client-specific DataLoader
-            for client_loader in train_loaders:
+            # Iterate over each selected client-specific DataLoader
+            for idx in selected_indices:
+                client_loader = train_loaders[idx]
                 if algorithm == 'fedavg':
                     updated_weights = client_update_baseline(
                         global_model, client_loader, learning_rate, device, local_epochs
