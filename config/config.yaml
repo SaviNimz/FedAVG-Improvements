@@ -9,9 +9,9 @@ T: 2.0
 tau: 0.9
 
 # Dataset
-dataset_name: CIFAR-10
+dataset_name: MNIST
 batch_size: 50
-model_name: cifar_cnn
+model_name: mnist_cnn
 num_clients: 100
 non_iid: false
 shards_per_client: 1
