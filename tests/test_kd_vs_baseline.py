@@ -69,8 +69,7 @@ def run_fedavg(train_loaders, test_loader, epochs: int, lr: float, device, local
             client_weights.append(weights)
             client_sizes.append(len(loader.dataset))
         aggregated = server_aggregation(client_weights, client_sizes)
-        fixed = {k.replace('model.', ''): v for k, v in aggregated.items()}
-        model.load_state_dict(fixed)
+        model.load_state_dict(aggregated)
     acc, _ = evaluate_model(model, test_loader, cross_entropy_loss, device)
     return acc
 
@@ -88,8 +87,7 @@ def run_fedavg_kd(train_loaders, test_loader, epochs: int,
             client_weights.append(weights)
             client_sizes.append(len(loader.dataset))
         aggregated = server_aggregation(client_weights, client_sizes)
-        fixed = {k.replace('model.', ''): v for k, v in aggregated.items()}
-        model.load_state_dict(fixed)
+        model.load_state_dict(aggregated)
     acc, _ = evaluate_model(model, test_loader, cross_entropy_loss, device)
     return acc
 
