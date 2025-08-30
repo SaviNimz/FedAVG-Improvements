@@ -4,6 +4,7 @@ from typing import Any, Dict
 import random
 import numpy as np
 import torch
+from pathlib import Path
 from torch.utils.data import DataLoader
 
 from utils.data_loader import load_data
@@ -18,6 +19,8 @@ from models.architectures import (
     MNISTCNN,
     ShakespeareLSTM,
 )
+from .metadata import create_run_dir
+from .reporting import save_results
 
 
 def _create_model(config: Dict[str, Any]) -> torch.nn.Module:
@@ -95,7 +98,11 @@ def _train_algorithm(
     return {"metrics": metrics, "model_state": model.state_dict()}
 
 
-def run_comparison(config: Dict[str, Any], tag: str) -> Dict[str, Any]:
+def run_comparison(
+    config: Dict[str, Any],
+    base_path: Path,
+    tag: str | None = None,
+) -> Dict[str, Any]:
     """Compare baseline FedAvg with knowledge distillation variant.
 
     The function trains two separate models using the provided configuration:
@@ -107,14 +114,23 @@ def run_comparison(config: Dict[str, Any], tag: str) -> Dict[str, Any]:
     ----------
     config: dict
         Experiment configuration containing dataset and hyperparameters.
-    tag: str
-        Identifier for the comparison run.
+    base_path: Path
+        Root directory where the ``results`` folder will be created.
+    tag: str, optional
+        Optional identifier for the comparison run. If not provided a timestamp
+        based tag is generated.
 
     Returns
     -------
     dict
         Dictionary holding metrics and final model states for both algorithms.
     """
+    if tag is not None:
+        config.setdefault("tag", tag)
+
+    run_dir = create_run_dir(base_path, config)
+    tag = run_dir.name
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_loaders, test_loader = load_data(
@@ -137,5 +153,7 @@ def run_comparison(config: Dict[str, Any], tag: str) -> Dict[str, Any]:
         results[algorithm] = _train_algorithm(
             algorithm, base_model, train_loaders, test_loader, config, device
         )
+
+    save_results(results, run_dir)
 
     return results

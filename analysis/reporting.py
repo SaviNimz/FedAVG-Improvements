@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import torch
 
 
 def save_results(results: Dict[str, Any], output_dir: Path) -> None:
@@ -78,6 +79,12 @@ def save_results(results: Dict[str, Any], output_dir: Path) -> None:
         f"FedAvg+KD average loss: {avg_loss_kd:.4f}\n"
     )
     (output_dir / "summary.txt").write_text(summary)
+
+    # Persist final model weights for each algorithm
+    for alg in ["fedavg", "fedavg_kd"]:
+        state = results.get(alg, {}).get("model_state")
+        if state:
+            torch.save(state, output_dir / f"{alg}_model.pt")
 
 
 __all__ = ["save_results"]
