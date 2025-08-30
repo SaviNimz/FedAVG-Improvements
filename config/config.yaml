@@ -18,7 +18,7 @@ shards_per_client: 1
 seed: 42
 
 # Training parameters
-epochs: 300
+epochs: 100
 learning_rate: 0.005
 local_epochs: 5          # number of local training passes per client
 client_fraction: 0.1     # fraction C of clients sampled each round
