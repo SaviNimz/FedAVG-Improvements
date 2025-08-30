@@ -52,7 +52,7 @@ def load_config(config_file):
     return config
 
 
-def train_algorithm(config: Dict[str, Any], global_model: torch.nn.Module, train_loaders: list[DataLoader], test_loader: DataLoader, device: torch.device) -> Dict[str, Any]:
+def train_algorithm(algorithm, config: Dict[str, Any], global_model: torch.nn.Module, train_loaders: list[DataLoader], test_loader: DataLoader, device: torch.device) -> Dict[str, Any]:
     """
     Executes the federated learning training loop.
     
@@ -67,7 +67,7 @@ def train_algorithm(config: Dict[str, Any], global_model: torch.nn.Module, train
         dict: A dictionary containing the metrics and final model state.
     """
     # Algorithm selection
-    algorithm = config.get('algorithm', 'fedavg_kd').lower()
+    # algorithm = config.get('algorithm', 'fedavg_kd').lower()
 
     # Hyperparameters
     lambda_ = config.get('lambda_', 0.5)

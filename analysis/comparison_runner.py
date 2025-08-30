@@ -87,7 +87,7 @@ def run_comparison(
         # FIX: Wrap the train_algorithm call in a try-except block
         try:
             algorithm_results = train_algorithm(
-                config, global_model, train_loaders, test_loader, device
+                algorithm, config, global_model, train_loaders, test_loader, device
             )
             # Check if train_algorithm returned a valid dictionary
             if isinstance(algorithm_results, dict):
