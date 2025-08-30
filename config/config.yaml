@@ -10,15 +10,15 @@ tau: 0.9
 
 # Dataset
 dataset_name: CIFAR-10
-batch_size: 10
+batch_size: 50
 model_name: cifar_cnn
-num_clients: 200
+num_clients: 100
 non_iid: false
 shards_per_client: 1
 seed: 42
 
 # Training parameters
-epochs: 10
+epochs: 20
 learning_rate: 0.01
 local_epochs: 20          # number of local training passes per client
 client_fraction: 0.1     # fraction C of clients sampled each round
