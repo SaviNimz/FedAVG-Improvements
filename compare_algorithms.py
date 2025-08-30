@@ -6,7 +6,7 @@ from analysis.comparison_runner import run_comparison
 from analysis.reporting import save_results
 
 # Hardcoded values for the output directory and config file
-BASE_OUTPUT_DIR = Path("comparisons")
+BASE_OUTPUT_DIR = Path("analysis/comparisons")
 CONFIG_FILE_PATH = Path("config/config.yaml") 
 
 def get_next_versioned_dir(base_path: Path) -> Path:
