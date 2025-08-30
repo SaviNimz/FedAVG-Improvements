@@ -17,7 +17,7 @@ def _get_transform(dataset_name: str):
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
-    if name in ('emnist', 'femnist'):
+    if name in ('mnist', 'emnist', 'femnist'):
         return transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,)),
@@ -80,6 +80,9 @@ def load_data(
     if name == 'CIFAR-10':
         train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
         test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    elif name == 'MNIST':
+        train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+        test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
     elif name in ('EMNIST', 'FEMNIST'):
         train_dataset = datasets.EMNIST(root='./data', split='byclass', train=True, download=True, transform=transform)
         test_dataset = datasets.EMNIST(root='./data', split='byclass', train=False, download=True, transform=transform)

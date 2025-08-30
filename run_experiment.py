@@ -10,7 +10,12 @@ from training.client_update_baseline import client_update_baseline
 from training.server_aggregation import server_aggregation
 from utils.data_loader import load_data
 from utils.evaluation import evaluate_model
-from models.architectures import CIFARCNN, FEMNISTCNN, ShakespeareLSTM
+from models.architectures import (
+    CIFARCNN,
+    FEMNISTCNN,
+    MNISTCNN,
+    ShakespeareLSTM,
+)
 from utils.loss_function import cross_entropy_loss
 
 
@@ -24,6 +29,8 @@ def create_model(config):
     if dataset in ('femnist', 'emnist') or model_name in ('femnist_cnn', 'emnist_cnn'):
         num_classes = config.get('num_classes', 62)
         return FEMNISTCNN(num_classes=num_classes)
+    if dataset == 'mnist' or model_name == 'mnist_cnn':
+        return MNISTCNN()
     if dataset == 'shakespeare' or model_name in ('shakespeare', 'shakespeare_lstm'):
         vocab_size = config.get('vocab_size', 80)
         return ShakespeareLSTM(vocab_size=vocab_size)
