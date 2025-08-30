@@ -39,10 +39,9 @@ def client_update(global_model, local_data, lambda_, T, tau, learning_rate, devi
             teacher_probs = torch.softmax(teacher_out / T, dim=1)
             conf, _ = teacher_probs.max(dim=1)
 
-            kd_loss = distillation_loss(teacher_out, student_out, T)
-
             # Apply distillation only when average confidence exceeds the threshold
             if conf.mean() >= tau:
+                kd_loss = distillation_loss(teacher_out, student_out, T)
                 loss = ce_loss + lambda_ * kd_loss
             else:
                 loss = ce_loss

@@ -10,6 +10,7 @@ class TeacherModel(nn.Module):
         self.freeze()
 
     def freeze(self):
+        self.model.eval()
         for param in self.model.parameters():
             param.requires_grad = False
         return self
