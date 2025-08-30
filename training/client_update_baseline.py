@@ -25,6 +25,9 @@ def client_update_baseline(global_model, local_data, learning_rate, device, loca
     for _ in range(local_epochs):
         for inputs, labels in local_data:
             inputs, labels = inputs.to(device), labels.to(device)
+            # If labels come as sequences, focus on the next character only
+            if labels.dim() > 1:
+                labels = labels[:, -1]
             outputs = local_model(inputs)
             loss = cross_entropy_loss(outputs, labels)
 

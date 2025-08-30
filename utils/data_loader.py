@@ -113,7 +113,8 @@ def load_data(
 
             def __getitem__(self, idx):
                 x = self.data[idx:idx + self.seq_len]
-                y = self.data[idx + 1: idx + self.seq_len + 1]
+                # Use the next character as the target rather than a full sequence
+                y = self.data[idx + self.seq_len]
                 return x, y
 
         train_dataset = ShakespeareDataset(train_data, seq_len)

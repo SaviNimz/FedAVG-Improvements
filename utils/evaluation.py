@@ -25,6 +25,9 @@ def evaluate_model(model, test_loader, criterion, device):
     with torch.no_grad():
         for inputs, labels in test_loader:
             inputs, labels = inputs.to(device), labels.to(device)
+            # Handle datasets that provide sequence labels by selecting the next token
+            if labels.dim() > 1:
+                labels = labels[:, -1]
             # Forward pass
             outputs = model(inputs)
             loss = criterion(outputs, labels)
