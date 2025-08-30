@@ -6,7 +6,7 @@ algorithm: fedavg
 # Hyperparameters
 lambda_: 0.6
 T: 2.0
-tau: 0.5
+tau: 0.1
 
 # Dataset
 dataset_name: MNIST
@@ -15,7 +15,7 @@ model_name: mnist_cnn
 num_clients: 100
 non_iid: true
 shards_per_client: 1
-seed: 42
+seed: 40
 
 # Training parameters
 epochs: 100
