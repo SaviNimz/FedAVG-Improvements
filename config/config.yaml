@@ -1,7 +1,7 @@
 # Algorithm
 #   fedavg: baseline Federated Averaging
 #   fedavg_kd: Federated Averaging with knowledge distillation
-algorithm: fedavg_kd
+algorithm: fedavg
 
 # Hyperparameters
 lambda_: 0.5
