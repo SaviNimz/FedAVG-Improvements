@@ -45,6 +45,7 @@ def prepare_data(seed: int, batch_size: int,
         batch_size,
         num_clients=num_clients,
         non_iid=True,
+        shards_per_client=1,
         seed=seed,
     )
 
