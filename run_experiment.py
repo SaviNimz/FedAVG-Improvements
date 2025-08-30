@@ -27,7 +27,7 @@ def create_model(config):
     if dataset == 'cifar-10' or model_name == 'cifar_cnn':
         return CIFARCNN()
     if dataset in ('femnist', 'emnist') or model_name in ('femnist_cnn', 'emnist_cnn'):
-        num_classes = config.get('num_classes', 62)
+        num_classes = config.get('num_classes', 10)
         return FEMNISTCNN(num_classes=num_classes)
     if dataset == 'mnist' or model_name == 'mnist_cnn':
         return MNISTCNN()
