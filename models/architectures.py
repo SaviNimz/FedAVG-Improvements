@@ -52,6 +52,29 @@ class FEMNISTCNN(nn.Module):
         return x
 
 
+class MNISTCNN(nn.Module):
+    """Compact CNN for MNIST digit classification."""
+    def __init__(self, num_classes: int = 10):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 7 * 7, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+
 class ShakespeareLSTM(nn.Module):
     """LSTM model for character-level Shakespeare dataset."""
     def __init__(self, vocab_size: int = 80, embedding_dim: int = 8,
@@ -67,3 +90,11 @@ class ShakespeareLSTM(nn.Module):
         output, _ = self.lstm(x)
         output = self.fc(output[:, -1, :])
         return output
+
+
+__all__ = [
+    "CIFARCNN",
+    "FEMNISTCNN",
+    "MNISTCNN",
+    "ShakespeareLSTM",
+]
