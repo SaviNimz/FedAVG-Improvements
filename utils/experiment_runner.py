@@ -1,4 +1,5 @@
 import random
+from typing import Any, Dict
 from torch.utils.data import DataLoader
 import yaml
 import mlflow
@@ -51,7 +52,7 @@ def load_config(config_file):
     return config
 
 
-def train_algorithm(config, global_model, train_loaders, test_loader, device):
+def train_algorithm(config: Dict[str, Any], global_model: torch.nn.Module, train_loaders: list[DataLoader], test_loader: DataLoader, device: torch.device) -> Dict[str, Any]:
     """
     Executes the federated learning training loop.
     
@@ -61,6 +62,9 @@ def train_algorithm(config, global_model, train_loaders, test_loader, device):
         train_loaders (list of DataLoader): Data loaders for each client.
         test_loader (DataLoader): The data loader for the central test set.
         device (torch.device): The device to run training on (CPU or CUDA).
+        
+    Returns:
+        dict: A dictionary containing the metrics and final model state.
     """
     # Algorithm selection
     algorithm = config.get('algorithm', 'fedavg_kd').lower()
@@ -79,6 +83,10 @@ def train_algorithm(config, global_model, train_loaders, test_loader, device):
     if isinstance(train_loaders, DataLoader):
         train_loaders = [train_loaders]
 
+    # Initialize lists to store metrics for each epoch
+    accuracy_list = []
+    loss_list = []
+
     # Training loop
     num_clients = len(train_loaders)
     for epoch in range(epochs):
@@ -91,6 +99,7 @@ def train_algorithm(config, global_model, train_loaders, test_loader, device):
 
         client_weights = []
         client_sizes = []
+        
         # Iterate over each selected client-specific DataLoader
         for idx in selected_indices:
             client_loader = train_loaders[idx]
@@ -116,10 +125,23 @@ def train_algorithm(config, global_model, train_loaders, test_loader, device):
         # Load the aggregated weights directly without modifying keys
         global_model.load_state_dict(aggregated_weights)
 
+        # Evaluate the model and store the metrics
         accuracy, avg_loss = evaluate_model(global_model, test_loader, cross_entropy_loss, device)
         print(f"Validation Accuracy: {accuracy:.2f}% | Validation Loss: {avg_loss:.4f}")
-        mlflow.log_metric("accuracy", accuracy, step=epoch)
-        mlflow.log_metric("loss", avg_loss, step=epoch)
+        
+        # Collect the metrics
+        accuracy_list.append(accuracy)
+        loss_list.append(avg_loss)
+
+    # After the training loop, prepare the results dictionary
+    results = {
+        "metrics": {
+            "accuracy": accuracy_list,
+            "loss": loss_list,
+        },
+        "model_state": global_model.state_dict(),
+    }
+    return results
 
 
 def run_experiment(config):
