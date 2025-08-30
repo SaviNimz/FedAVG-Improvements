@@ -70,7 +70,7 @@ def run_experiment(config):
             config['dataset_name'],
             config['batch_size'],
             num_clients=config.get('num_clients', 1),
-            non_iid=config.get('non_iid', False),
+            non_iid=config.get('non_iid', True),
             shards_per_client=config.get('shards_per_client', 2),
             seed=config.get('seed'),
         )

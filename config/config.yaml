@@ -13,12 +13,12 @@ dataset_name: MNIST
 batch_size: 50
 model_name: mnist_cnn
 num_clients: 100
-non_iid: false
+non_iid: true
 shards_per_client: 1
 seed: 42
 
 # Training parameters
-epochs: 500
+epochs: 300
 learning_rate: 0.005
 local_epochs: 5          # number of local training passes per client
 client_fraction: 0.1     # fraction C of clients sampled each round
