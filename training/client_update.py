@@ -54,4 +54,5 @@ def client_update(global_model, local_data, lambda_, T, tau, learning_rate, devi
             loss.backward()
             optimizer.step()
 
-    return student.state_dict()
+    # Return only the underlying model's parameters to avoid the 'model.' prefix
+    return student.model.state_dict()
