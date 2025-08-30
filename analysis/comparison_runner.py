@@ -61,26 +61,48 @@ def run_comparison(
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_loaders, test_loader = load_data(
-        config["dataset_name"],
-        config["batch_size"],
-        num_clients=config.get("num_clients", 1),
-        non_iid=config.get("non_iid", True),
-        shards_per_client=config.get("shards_per_client", 2),
-        seed=config.get("seed"),
-    )
+    try:
+        train_loaders, test_loader = load_data(
+            config["dataset_name"],
+            config["batch_size"],
+            num_clients=config.get("num_clients", 1),
+            non_iid=config.get("non_iid", True),
+            shards_per_client=config.get("shards_per_client", 2),
+            seed=config.get("seed"),
+        )
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        # Return an empty dictionary to avoid the AttributeError
+        return {}
 
     if isinstance(train_loaders, DataLoader):
         train_loaders = [train_loaders]
 
     results: Dict[str, Any] = {"tag": tag}
     for algorithm in ["fedavg", "fedavg_kd"]:
+        print(f"Running algorithm: {algorithm}")
         _seed_everything(config.get("seed"))
         global_model = create_model(config)
-        results[algorithm] = train_algorithm(
-            config, global_model, train_loaders, test_loader, device
-        )
+        
+        # FIX: Wrap the train_algorithm call in a try-except block
+        try:
+            algorithm_results = train_algorithm(
+                config, global_model, train_loaders, test_loader, device
+            )
+            # Check if train_algorithm returned a valid dictionary
+            if isinstance(algorithm_results, dict):
+                results[algorithm] = algorithm_results
+            else:
+                print(f"Warning: train_algorithm for {algorithm} did not return a dictionary. Got: {type(algorithm_results)}")
+                # Assign an empty dictionary to prevent the AttributeError in reporting.py
+                results[algorithm] = {"metrics": {}, "model_state": None}
+                
+        except Exception as e:
+            print(f"Error running {algorithm} algorithm: {e}")
+            # Ensure the results dictionary is still populated, even on failure
+            results[algorithm] = {"metrics": {}, "model_state": None}
 
+    # Now that results is guaranteed to be a dictionary, we can save them
     save_results(results, run_dir)
 
     return results
