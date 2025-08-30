@@ -28,6 +28,9 @@ def client_update(global_model, local_data, lambda_, T, tau, learning_rate, devi
     for _ in range(local_epochs):
         for inputs, labels in local_data:
             inputs, labels = inputs.to(device), labels.to(device)
+            # If labels are provided as sequences, use only the next token
+            if labels.dim() > 1:
+                labels = labels[:, -1]
             # Teacher and student predictions (raw logits)
             teacher_out = teacher(inputs)
             student_out = student(inputs)
