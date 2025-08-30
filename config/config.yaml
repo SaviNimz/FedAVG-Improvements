@@ -14,6 +14,7 @@ batch_size: 64
 model_name: cifar_cnn
 num_clients: 1
 non_iid: false
+shards_per_client: 1
 seed: 42
 
 # Training parameters

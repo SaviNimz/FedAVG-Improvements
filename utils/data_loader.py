@@ -66,6 +66,7 @@ def load_data(
     batch_size: int,
     num_clients: int = 1,
     non_iid: bool = False,
+    shards_per_client: int = 2,
     seed: Optional[int] = None,
 ):
     """Load dataset and return DataLoaders for clients and test set."""
@@ -120,7 +121,13 @@ def load_data(
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}")
 
-    subsets = _split_dataset(train_dataset, num_clients, non_iid, seed=seed)
+    subsets = _split_dataset(
+        train_dataset,
+        num_clients,
+        non_iid,
+        shards_per_client=shards_per_client,
+        seed=seed,
+    )
     train_loaders = [
         DataLoader(subset, batch_size=batch_size, shuffle=True) for subset in subsets
     ]
